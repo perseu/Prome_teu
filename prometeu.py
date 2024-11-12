@@ -12,13 +12,26 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
+# This lib downloads the data from Yahoo Finance.
 import yfinance as yf
+
+# The PyTorch libs
+import torch
+import torch.nn as nn
+from torch import optim
+from torch.nn import functional as F
+from torch.utils.data import Dataset, DataLoader, random_split
+
+# Sklearn libs to normalize the data and present information on the quality of the model.
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 
 # Global variables
 ticker = ['GLD', 'SLV', 'CORN', 'WEAT']
 period = '10y'
 interval = '1d'
 stockdata = {}
+
 
 
 
@@ -39,5 +52,6 @@ if __name__ == '__main__':
             print(stockdata[tic].isna().sum())
             print('\n\nExiting script!!!')
             sys.exit()
-    print('All Dataframes have their values, proceeding to the next phase!')
+    print('\n\nAll Dataframes have their values, proceeding to the next phase!')
+    
     
