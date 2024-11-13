@@ -56,13 +56,19 @@ if __name__ == '__main__':
             print(stockdata[tic].isna().sum())
             print('\n\nExiting script!!!')
             sys.exit()
+            
     print('\n\nAll Dataframes have their values, proceeding to the next phase!')
     
-    # Merging and Rescaling the data.
+    # Merging data.
     dfnames = []
     
     for tic in stockdata.keys():
         dfnames.append(stockdata[tic])  
 
     df = pd.concat(dfnames, axis=1, join='outer')
+    
+    # Rescalling data.
+    scaler = MinMaxScaler()
+    scaler.fit(df)
+    df_normalized = pd.DataFrame(scaler.transform(df), columns=df.columns, index=df.index)
     
