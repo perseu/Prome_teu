@@ -103,4 +103,13 @@ if __name__ == '__main__':
     # Creating the Dataset that will feed the model for training and validation.
     data = Data(df_normalized, 'GLD Close', ndays)
     
+    # Splitting the Dataset into a training, and validation datasets.
+    train_length = int(0.8 * len(data))
+    valid_length = len(data) - train_length
+    
+    trainDataset , validDataset = random_split(data, [train_length, valid_length])
+    
+    trainLoader = DataLoader(trainDataset, batch_size=32, shuffle=True)
+    validLoader = DataLoader(validDataset, batch_size=32, shuffle=False)
+    
     
