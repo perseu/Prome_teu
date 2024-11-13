@@ -102,3 +102,5 @@ if __name__ == '__main__':
     
     # Creating the Dataset that will feed the model for training and validation.
     data = Data(df_normalized, 'GLD Close', ndays)
+    
+    
