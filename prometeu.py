@@ -36,7 +36,7 @@ stockdata = {}
 # The Dataset class.
 class Data(Dataset):
     # The initialization 
-    def __init__(self, datadict, target):
+    def __init__(self, df, target):
         pass
 
 
@@ -61,14 +61,21 @@ if __name__ == '__main__':
     
     # Merging data.
     dfnames = []
+    df_cols = []
     
     for tic in stockdata.keys():
+        for coln in stockdata[tic]:
+            df_cols.append(tic+' '+coln)
+        stockdata[tic].columns = df_cols
+        df_cols = []
         dfnames.append(stockdata[tic])  
 
     df = pd.concat(dfnames, axis=1, join='outer')
+    
     
     # Rescalling data.
     scaler = MinMaxScaler()
     scaler.fit(df)
     df_normalized = pd.DataFrame(scaler.transform(df), columns=df.columns, index=df.index)
+    
     
