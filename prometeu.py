@@ -31,13 +31,34 @@ ticker = ['GLD', 'SLV', 'CORN', 'WEAT']
 period = '10y'
 interval = '1d'
 stockdata = {}
+ndays = 60
 
 
 # The Dataset class.
 class Data(Dataset):
     # The initialization 
-    def __init__(self, df, target):
-        pass
+    def __init__(self, df, target, ndays):
+        
+        feat = []
+        target = []
+        
+        for ii in range(0,len(df)-ndays):
+            feat.append(df.iloc[ii:ii + ndays].values)
+            target.append(df['GLD Close'].iloc[ii + ndays])
+            
+        self.x = torch.from_numpy(np.array(feat)).type(torch.FloatTensor)
+        self.y = torch.from_numpy(np.array(target)).type(torch.FloatTensor)
+        
+    
+    # get size of the sample
+    def __len__(self):
+        return len(self.y)
+    
+    
+    def __getitem__(self, idx):
+        return self.x[idx], self.y[idx]
+            
+            
 
 
 if __name__ == '__main__':
@@ -79,3 +100,5 @@ if __name__ == '__main__':
     df_normalized = pd.DataFrame(scaler.transform(df), columns=df.columns, index=df.index)
     
     
+    # Creating the Dataset that will feed the model for training and validation.
+    data = Data(df_normalized, 'GLD Close', ndays)
