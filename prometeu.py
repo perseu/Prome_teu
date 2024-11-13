@@ -33,7 +33,11 @@ interval = '1d'
 stockdata = {}
 
 
-
+# The Dataset class.
+class Data(Dataset):
+    # The initialization 
+    def __init__(self, datadict, target):
+        pass
 
 
 if __name__ == '__main__':
@@ -54,4 +58,11 @@ if __name__ == '__main__':
             sys.exit()
     print('\n\nAll Dataframes have their values, proceeding to the next phase!')
     
+    # Merging and Rescaling the data.
+    dfnames = []
+    
+    for tic in stockdata.keys():
+        dfnames.append(stockdata[tic])  
+
+    df = pd.concat(dfnames, axis=1, join='outer')
     
