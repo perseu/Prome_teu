@@ -62,34 +62,34 @@ class Data(Dataset):
 
 # The recurrent neural network class.
 class LSTMmodel(nn.Module):
-    # The neural network creation. Let it be light! The a RNN Spawns from nothing.
     def __init__(self, input_size, num_hidden, size_hidden, output_size):
-        super(LSTMmodel, self).__init__()  
-        
-        # Storing some parameter values in the class.
+        super(LSTMmodel, self).__init__()
+
         self.input_size = input_size
         self.num_hidden = num_hidden
         self.size_hidden = size_hidden
         self.output_size = output_size
-        
-        # The LSTM layer
-        self.lstm = nn.LSTM(self.input_size, self.num_hidden, self.size_hidden, batch_first=True)
 
-        # The last layer which is a fully connected layer.
+        # The LSTM layer
+        self.lstm = nn.LSTM(self.input_size, self.size_hidden, self.num_hidden, batch_first=True)
+
+        # The fully connected layer
         self.fc = nn.Linear(self.size_hidden, self.output_size)
         
-    
     def forward(self, x):
-        # Initialization of the LSTM parameters
-        h0 = torch.zeros(self.num_hidden, x.size(0), self.size_hidden)
-        c0 = torch.zeros(self.num_hidden, x.size(0), self.size_hidden)
-        
-        # Forward propagation of the LSTM
-        out, _ = self.lstm(x, (h0, c0))
-        
-        # Propagation through the fully connected layer, which connects to the output
-        out = self.fc(out[:,-1,:])
-        
+        # Initialize hidden and cell states
+        h0 = torch.zeros(self.num_hidden, x.size(0), self.size_hidden).to(x.device)  # (num_layers, batch_size, hidden_size)
+        c0 = torch.zeros(self.num_hidden, x.size(0), self.size_hidden).to(x.device)  
+
+        # Forward pass through the LSTM
+        out, (h_n, c_n) = self.lstm(x, (h0, c0))
+
+        # Use the last hidden state from the last time step
+        out = out[:, -1, :]  
+
+        # Feed the output into the fully connected layer
+        out = self.fc(out)
+
         return out
     
 
@@ -145,4 +145,10 @@ if __name__ == '__main__':
     trainLoader = DataLoader(trainDataset, batch_size=32, shuffle=True)
     validLoader = DataLoader(validDataset, batch_size=32, shuffle=False)
     
+    # Creating the model.
+    n_hidden = 3
+    hidden_size = 64
+    out_size = 1
+    
+    lstmmodel = LSTMmodel(df.shape[1], n_hidden, hidden_size, out_size)
     
