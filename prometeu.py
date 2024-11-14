@@ -58,7 +58,40 @@ class Data(Dataset):
     def __getitem__(self, idx):
         return self.x[idx], self.y[idx]
             
-            
+
+
+# The recurrent neural network class.
+class LSTMmodel(nn.Module):
+    # The neural network creation. Let it be light! The a RNN Spawns from nothing.
+    def __init__(self, input_size, num_hidden, size_hidden, output_size):
+        super(LSTMmodel, self).__init__()  
+        
+        # Storing some parameter values in the class.
+        self.input_size = input_size
+        self.num_hidden = num_hidden
+        self.size_hidden = size_hidden
+        self.output_size = output_size
+        
+        # The LSTM layer
+        self.lstm = nn.LSTM(self.input_size, self.num_hidden, self.size_hidden, batch_first=True)
+
+        # The last layer which is a fully connected layer.
+        self.fc = nn.Linear(self.size_hidden, self.output_size)
+        
+    
+    def forward(self, x):
+        # Initialization of the LSTM parameters
+        h0 = torch.zeros(self.num_hidden, x.size(0), self.size_hidden)
+        c0 = torch.zeros(self.num_hidden, x.size(0), self.size_hidden)
+        
+        # Forward propagation of the LSTM
+        out, _ = self.lstm(x, (h0, c0))
+        
+        # Propagation through the fully connected layer, which connects to the output
+        out = self.fc(out[:,-1,:])
+        
+        return out
+    
 
 
 if __name__ == '__main__':
