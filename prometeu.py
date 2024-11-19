@@ -224,10 +224,23 @@ if __name__ == '__main__':
     
     # Training and validation parameters, criterion, optimizer, and number of epochs.
     lr = 0.001
-    epochs = 1000
+    epochs = 100
     
     criterion = torch.nn.MSELoss()
     optimizer = torch.optim.Adam(lstmmodel.parameters(), lr=lr)
     
     # training and validation
     TrainValidStatistics = train_validate(lstmmodel, trainLoader, validLoader, criterion, optimizer, epochs)
+    
+    # Plotting the evolution of the Loss throughout the training and validation epochs
+    x = range(len(TrainValidStatistics))
+    plt.figure(figsize=(14,10))
+    sns.lineplot(data=TrainValidStatistics, x=x, y='Train Loss Average', label='Train Loss Average')
+    plt.fill_between(x, TrainValidStatistics['Train Loss Average'] - TrainValidStatistics['Train Loss STD'], TrainValidStatistics['Train Loss Average'] + TrainValidStatistics['Train Loss STD'], alpha=0.3) #, label='Train Loss STD')
+    sns.lineplot(data=TrainValidStatistics, x=x, y='Validation Loss Average', label='Validation Loss Average')
+    plt.fill_between(x, TrainValidStatistics['Validation Loss Average'] - TrainValidStatistics['Validation Loss STD'], TrainValidStatistics['Validation Loss Average'] + TrainValidStatistics['Validation Loss STD'], alpha=0.3) #, label='Validation Loss STD')    
+    plt.xlabel('Epoch')
+    plt.ylabel('Average Loss')
+    plt.show()
+
+    
