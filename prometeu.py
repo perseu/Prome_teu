@@ -6,11 +6,13 @@ Created on Thu Nov  7 16:08:09 2024
 """
 
 # The usual imports...
+import time
 import sys
 import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 # This lib downloads the data from Yahoo Finance.
 import yfinance as yf
@@ -33,6 +35,9 @@ interval = '1d'
 stockdata = {}
 ndays = 60
 
+################################################################################
+# Classes                                                                      #
+################################################################################
 
 # The Dataset class.
 class Data(Dataset):
@@ -77,8 +82,8 @@ class LSTMmodel(nn.Module):
         self.fc = nn.Linear(self.size_hidden, self.output_size)
         
     def forward(self, x):
-        # Initialize hidden and cell states
-        h0 = torch.zeros(self.num_hidden, x.size(0), self.size_hidden).to(x.device)  # (num_layers, batch_size, hidden_size)
+        # Initialize hidden and cell states (num_layers, batch_size, hidden_size)
+        h0 = torch.zeros(self.num_hidden, x.size(0), self.size_hidden).to(x.device)  
         c0 = torch.zeros(self.num_hidden, x.size(0), self.size_hidden).to(x.device)  
 
         # Forward pass through the LSTM
@@ -93,6 +98,71 @@ class LSTMmodel(nn.Module):
         return out
     
 
+################################################################################
+# Functions                                                                    #
+################################################################################
+
+# Training and validation of the model
+def train_validate(model, trainloader, validloader, criterion, optimizer, epochs, device='cpu'):
+    # setting up the device that is going to process the model
+    model.to(device)
+    
+    # Registration of loss
+    trainLoss = []
+    validLoss = []
+    lossAVGEpochTrain = []
+    lossSTDEpochTrain = []
+    lossAVGEpochValid = []
+    lossSTDEpochValid = []
+    
+    
+    start_time = time.time()
+    for epoch in range(epochs):
+        for x, y in trainloader:
+            x, y = x.float(), y.float()
+            model.train()
+            optimizer.zero_grad()
+            yhat = model(x)
+            loss = criterion(yhat, y.view(-1, 1))
+            loss.backward()
+            optimizer.step()
+            trainLoss.append(loss.item())
+        
+        lossAVGEpochTrain.append(np.array(trainLoss).mean())
+        lossSTDEpochTrain.append(np.array(trainLoss).std())
+        
+        with torch.no_grad():
+            for x, y in validloader:
+                x, y = x.float(), y.float()
+                model.eval()
+                yhat = model(x)
+                loss = criterion(yhat, y.view(-1, 1))
+                validLoss.append(loss.item())
+                
+        lossAVGEpochValid.append(np.array(validLoss).mean())
+        lossSTDEpochValid.append(np.array(validLoss).std())
+        
+        if epoch%10 == 0:                          # This cycle prints out the epoch number every 10 epochs.
+            epoch_time = time.time()
+            epoch_time = (epoch_time - start_time)/60             # Converts from seconds to minutes.
+            print(f'Passing epoch {epoch:.0f} after {epoch_time:.2f} minutes.')
+    
+    end_time = time.time()
+    total_time = end_time - start_time
+    print(f"\nTraining time: {total_time:.2f} minutes")    
+    print('\n\nThe training as ended... You\'re now a Jedi!!!\n')
+    
+    TrainValidStatistics = pd.DataFrame({'Train Loss Average':lossAVGEpochTrain,
+                                         'Train Loss STD':lossSTDEpochTrain,
+                                         'Validation Loss Average':lossAVGEpochValid,
+                                         'Validation Loss STD':lossSTDEpochValid})
+    
+    return TrainValidStatistics
+
+
+################################################################################
+# The biginning of everything... Let there be the "Main"!!!                    #
+################################################################################
 
 if __name__ == '__main__':
     
@@ -152,3 +222,12 @@ if __name__ == '__main__':
     
     lstmmodel = LSTMmodel(df.shape[1], n_hidden, hidden_size, out_size)
     
+    # Training and validation parameters, criterion, optimizer, and number of epochs.
+    lr = 0.001
+    epochs = 1000
+    
+    criterion = torch.nn.MSELoss()
+    optimizer = torch.optim.Adam(lstmmodel.parameters(), lr=lr)
+    
+    # training and validation
+    TrainValidStatistics = train_validate(lstmmodel, trainLoader, validLoader, criterion, optimizer, epochs)
