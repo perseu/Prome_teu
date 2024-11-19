@@ -148,7 +148,7 @@ def train_validate(model, trainloader, validloader, criterion, optimizer, epochs
             print(f'Passing epoch {epoch:.0f} after {epoch_time:.2f} minutes.')
     
     end_time = time.time()
-    total_time = end_time - start_time
+    total_time = (end_time - start_time)/60
     print(f"\nTraining time: {total_time:.2f} minutes")    
     print('\n\nThe training as ended... You\'re now a Jedi!!!\n')
     
@@ -243,4 +243,18 @@ if __name__ == '__main__':
     plt.ylabel('Average Loss')
     plt.show()
 
+    # Predict tomorrow... Considering that the code is downloading the last 10 years worth of data.
+    last60 = df_normalized.iloc[-60:].values
+    last60 = torch.tensor(last60, dtype=torch.float32)
+    last60 = last60.unsqueeze(0)
+    with torch.no_grad():
+        prediction = lstmmodel(last60)    
     
+    placeholder = np.zeros((1, scaler.data_min_.shape[0]))
+    idx_target = list(df_normalized.columns).index('GLD Close')
+    placeholder[0, idx_target] = prediction.item()
+    inverse_transformed = scaler.inverse_transform(placeholder)
+    predicted_value_actual = inverse_transformed[0, idx_target]
+    
+    print("Todays True Close for Gold: "+str(df.iloc[-1,1]))
+    print("Perdiction for tomorrows Close Value of Gold will be: ", predicted_value_actual)
