@@ -168,7 +168,7 @@ if __name__ == '__main__':
     
     print('Wellcome to Prometeu. \n\nThis is an exercise to practice with the creation and training of RNNs.\nLets start by downloading the data.\n')
     
-    # Downloading the data to a dictonary of DataFrames
+    # Downloading the data to a dictionary of DataFrames
     for tic in ticker:
         df = yf.download(tickers=tic, period=period,interval=interval, multi_level_index=False)
         stockdata[tic]=df
